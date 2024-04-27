@@ -12,7 +12,8 @@ namespace LineSegmentDrawer
             y1 = y1;
         private readonly Color foreColor = color;
 
-        public void Draw(Bitmap bitmap)
+        //based on Xiaolin Wu's line algorithm
+        public void DrawTo(Bitmap bitmap)
         {
             bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
             double temp;
@@ -47,13 +48,13 @@ namespace LineSegmentDrawer
 
             if (steep)
             {
-                DrawPixel(bitmap, yPixel1, xPixel1, InverseFractionalPart(yEnd) * xGap);
-                DrawPixel(bitmap, yPixel1 + 1, xPixel1, FractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, yPixel1, xPixel1, InverseFractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, yPixel1 + 1, xPixel1, FractionalPart(yEnd) * xGap);
             }
             else
             {
-                DrawPixel(bitmap, xPixel1, yPixel1, InverseFractionalPart(yEnd) * xGap);
-                DrawPixel(bitmap, xPixel1, yPixel1 + 1, FractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, xPixel1, yPixel1, InverseFractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, xPixel1, yPixel1 + 1, FractionalPart(yEnd) * xGap);
             }
             double yIntersection = yEnd + gradient;
 
@@ -64,26 +65,26 @@ namespace LineSegmentDrawer
             double yPixel2 = IntegerPart(yEnd);
             if (steep)
             {
-                DrawPixel(bitmap, yPixel2, xPixel2, InverseFractionalPart(yEnd) * xGap);
-                DrawPixel(bitmap, yPixel2 + 1, xPixel2, FractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, yPixel2, xPixel2, InverseFractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, yPixel2 + 1, xPixel2, FractionalPart(yEnd) * xGap);
             }
             else
             {
-                DrawPixel(bitmap, xPixel2, yPixel2, InverseFractionalPart(yEnd) * xGap);
-                DrawPixel(bitmap, xPixel2, yPixel2 + 1, FractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, xPixel2, yPixel2, InverseFractionalPart(yEnd) * xGap);
+                PlotPixel(bitmap, xPixel2, yPixel2 + 1, FractionalPart(yEnd) * xGap);
             }
 
             if (steep)
             {
                 for (int x = (int)(xPixel1 + 1); x <= xPixel2 - 1; x++)
                 {
-                    DrawPixel(
+                    PlotPixel(
                         bitmap,
                         IntegerPart(yIntersection),
                         x,
                         InverseFractionalPart(yIntersection)
                     );
-                    DrawPixel(
+                    PlotPixel(
                         bitmap,
                         IntegerPart(yIntersection) + 1,
                         x,
@@ -96,13 +97,13 @@ namespace LineSegmentDrawer
             {
                 for (int x = (int)(xPixel1 + 1); x <= xPixel2 - 1; x++)
                 {
-                    DrawPixel(
+                    PlotPixel(
                         bitmap,
                         x,
                         IntegerPart(yIntersection),
                         InverseFractionalPart(yIntersection)
                     );
-                    DrawPixel(
+                    PlotPixel(
                         bitmap,
                         x,
                         IntegerPart(yIntersection) + 1,
@@ -113,7 +114,7 @@ namespace LineSegmentDrawer
             }
         }
 
-        private void DrawPixel(Bitmap bitmap, double x, double y, double c)
+        private void PlotPixel(Bitmap bitmap, double x, double y, double c)
         {
             if (!(x >= 0 && y >= 0 && x < bitmap.Width && y < bitmap.Height))
             {

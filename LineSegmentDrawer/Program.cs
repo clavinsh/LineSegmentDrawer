@@ -2,10 +2,11 @@
 using System.Drawing.Imaging;
 using LineSegmentDrawer;
 
-Color lineColor = Color.Green;
+Color lineColor = Color.White;
 Color backgroundColor = Color.DarkSlateBlue;
-Point start = new Point(10, 10);
-Point end = new Point(50, 173);
+
+Point start = new Point(173, 10);
+Point end = new Point(10, 50);
 
 //Line line = new Line(lineColor, backgroundColor, start.X, start.Y, end.X, end.Y);
 
@@ -19,7 +20,7 @@ Graphics g = Graphics.FromImage(image);
 
 g.Clear(backgroundColor);
 
-line.Draw(image);
+line.DrawTo(image);
 image.Save("output.png", ImageFormat.Png);
 
 Console.WriteLine("Image created and saved!");
