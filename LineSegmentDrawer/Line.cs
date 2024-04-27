@@ -115,6 +115,11 @@ namespace LineSegmentDrawer
 
         private void DrawPixel(Bitmap bitmap, double x, double y, double c)
         {
+            if (!(x >= 0 && y >= 0 && x < bitmap.Width && y < bitmap.Height))
+            {
+                return;
+            }
+
             int alpha = (int)(c * 255);
             Math.Clamp(alpha, 0, 255);
 
