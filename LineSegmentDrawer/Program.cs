@@ -1,26 +1,89 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Text.Json;
 using LineSegmentDrawer;
+using LineSegmentDrawer.JsonTextSpecification;
 
-Color lineColor = Color.White;
-Color backgroundColor = Color.DarkSlateBlue;
+const string inputFileName = "input.txt";
+const string outputFileName = "output.png";
 
-Point start = new Point(173, 10);
-Point end = new Point(10, 50);
+string currentDirectory = Directory.GetCurrentDirectory();
+string inputPath = Path.Combine(currentDirectory, inputFileName);
 
-//Line line = new Line(lineColor, backgroundColor, start.X, start.Y, end.X, end.Y);
+if (!File.Exists(inputPath))
+{
+    Console.Error.WriteLine(
+        $"No input file {inputFileName} found in the current directory: {currentDirectory}"
+    );
+    return -1;
+}
 
+ImageSpecification? specification;
 
-Line line = new Line(start.X, start.Y, end.X, end.Y, lineColor);
+try
+{
+    string inputJson = File.ReadAllText(inputPath);
+    specification = JsonSerializer.Deserialize(
+        inputJson,
+        SourceGenerationContext.Default.ImageSpecification
+    );
+}
+catch (JsonException ex)
+{
+    Console.Error.WriteLine("Error parsing JSON input: " + ex.Message);
+    return -1;
+}
 
-Console.WriteLine("Creating the image based on the supplied line parameters...");
+if (specification == null)
+{
+    Console.Error.WriteLine("Failed to parse the input or the input was empty.");
+    return -1;
+}
 
-var image = new Bitmap(200, 200);
-Graphics g = Graphics.FromImage(image);
+if (specification.ImageWidth <= 0 || specification.ImageHeight <= 0)
+{
+    Console.Error.WriteLine("Invalid image dimensions specified in the input.");
+    return -1;
+}
 
-g.Clear(backgroundColor);
+if (specification.Lines == null || specification.Lines.Length == 0)
+{
+    Console.Error.WriteLine("No lines specified in the input for drawing.");
+    return -1;
+}
 
-line.DrawTo(image);
-image.Save("output.png", ImageFormat.Png);
+Console.WriteLine("Input text parsed...");
 
-Console.WriteLine("Image created and saved!");
+try
+{
+    Console.WriteLine("Drawing image...");
+    using var image = new Bitmap(specification.ImageWidth, specification.ImageHeight);
+    using (Graphics g = Graphics.FromImage(image))
+    {
+        g.Clear(specification.BackgroundColor.ToColor());
+    }
+
+    foreach (var lineSpec in specification.Lines)
+    {
+        var line = new Line(
+            lineSpec.x0,
+            lineSpec.y0,
+            lineSpec.x1,
+            lineSpec.y1,
+            lineSpec.Color.ToColor()
+        );
+        line.DrawTo(image);
+    }
+
+    image.Save(outputFileName, ImageFormat.Png);
+    Console.WriteLine($"Image created and saved to {Path.GetFullPath(outputFileName)}!");
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine("An error occurred while creating the image: " + ex.Message);
+    return -1;
+}
+
+return 0;

@@ -16,24 +16,16 @@ namespace LineSegmentDrawer
         public void DrawTo(Bitmap bitmap)
         {
             bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
-            double temp;
+
             if (steep)
             {
-                temp = x0;
-                x0 = y0;
-                y0 = temp;
-                temp = x1;
-                x1 = y1;
-                y1 = temp;
+                (x0, y0) = (y0, x0);
+                (x1, y1) = (y1, x1);
             }
             if (x0 > x1)
             {
-                temp = x0;
-                x0 = x1;
-                x1 = temp;
-                temp = y0;
-                y0 = y1;
-                y1 = temp;
+                (x0, x1) = (x1, x0);
+                (y0, y1) = (y1, y0);
             }
 
             double dx = x1 - x0;
@@ -116,20 +108,22 @@ namespace LineSegmentDrawer
 
         private void PlotPixel(Bitmap bitmap, double x, double y, double c)
         {
-            if (!(x >= 0 && y >= 0 && x < bitmap.Width && y < bitmap.Height))
+            int xCoordinate = (int)x;
+            int yCoordinate = (int)y;
+
+            if (!WithinBounds(xCoordinate, yCoordinate, bitmap.Width, bitmap.Height))
             {
                 return;
             }
 
-            int alpha = (int)(c * 255);
-            Math.Clamp(alpha, 0, 255);
+            int alpha = Math.Clamp((int)(c * 255), 0, 255);
 
             Color linePixel = Color.FromArgb(alpha, foreColor);
-            Color background = bitmap.GetPixel((int)x, (int)y);
+            Color background = bitmap.GetPixel(xCoordinate, yCoordinate);
 
             Color blended = BlendColors(linePixel, background);
 
-            bitmap.SetPixel((int)x, (int)y, blended);
+            bitmap.SetPixel(xCoordinate, yCoordinate, blended);
         }
 
         // from https://en.wikipedia.org/wiki/Alpha_compositing
@@ -162,6 +156,11 @@ namespace LineSegmentDrawer
             return Color.FromArgb((int)(blendAlpha * 255f), blendRed, blendGreen, blendBlue);
         }
 
+        private static bool WithinBounds(int x, int y, int width, int height)
+        {
+            return x >= 0 && y >= 0 && x < width && y < height;
+        }
+
         private static int IntegerPart(double x)
         {
             return (int)x;
@@ -169,14 +168,12 @@ namespace LineSegmentDrawer
 
         private static int Round(double x)
         {
-            return IntegerPart(x + 0.5);
+            return (int)Math.Round(x, 0, MidpointRounding.AwayFromZero);
         }
 
         private static double FractionalPart(double x)
         {
-            if (x < 0)
-                return (1 - (x - Math.Floor(x)));
-            return (x - Math.Floor(x));
+            return Math.Abs(x - Math.Floor(x));
         }
 
         private static double InverseFractionalPart(double x)
